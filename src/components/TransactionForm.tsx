@@ -2,6 +2,19 @@ import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import type { Transaction } from '../types'
 
+const COMMON_CURRENCIES = [
+  { code: 'EUR', label: 'EUR (€)' },
+  { code: 'USD', label: 'USD ($)' },
+  { code: 'GBP', label: 'GBP (£)' },
+  { code: 'CHF', label: 'CHF (Fr)' },
+  { code: 'JPY', label: 'JPY (¥)' },
+  { code: 'CAD', label: 'CAD (C$)' },
+  { code: 'AUD', label: 'AUD (A$)' },
+  { code: 'CNY', label: 'CNY (¥)' },
+  { code: 'RSD', label: 'RSD (din)' },
+  { code: 'BAM', label: 'BAM (KM)' },
+] as const
+
 interface Props {
   initial?: Partial<Transaction> | null
   isDuplicate?: boolean
@@ -14,17 +27,19 @@ const today = () => new Date().toISOString().slice(0, 10)
 export default function TransactionForm({ initial, isDuplicate, onSave, onClose }: Props) {
   const [type, setType] = useState<'in' | 'out'>(initial?.type ?? 'in')
   const [amount, setAmount] = useState(initial?.amount?.toString() ?? '')
-  const [currency, setCurrency] = useState(initial?.currency ?? 'USD')
+  const [currency, setCurrency] = useState((initial?.currency ?? 'EUR').toUpperCase())
   const [description, setDescription] = useState(initial?.description ?? '')
   const [date, setDate] = useState(initial?.date ?? today())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const hasCustomCurrency = !!currency && !COMMON_CURRENCIES.some(c => c.code === currency)
+
   useEffect(() => {
     if (initial) {
       setType(initial.type ?? 'in')
       setAmount(initial.amount?.toString() ?? '')
-      setCurrency(initial.currency ?? 'USD')
+      setCurrency((initial.currency ?? 'EUR').toUpperCase())
       setDescription(initial.description ?? '')
       setDate(isDuplicate ? today() : (initial.date ?? today()))
     }
@@ -82,8 +97,13 @@ export default function TransactionForm({ initial, isDuplicate, onSave, onClose 
             </div>
             <div className="w-24">
               <label className="block text-xs text-slate-400 mb-1">Currency</label>
-              <input type="text" required value={currency} onChange={e => setCurrency(e.target.value)} maxLength={8}
-                className="w-full bg-slate-800 rounded-xl px-3 py-3 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 uppercase" />
+                <select value={currency} onChange={e => setCurrency(e.target.value)}
+                  className="w-full bg-slate-800 rounded-xl px-3 py-3 text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500">
+                  {COMMON_CURRENCIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                  {hasCustomCurrency && <option value={currency}>{currency}</option>}
+                </select>
             </div>
           </div>
 

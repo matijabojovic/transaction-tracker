@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [joinCode, setJoinCode] = useState('')
   const [joinState, setJoinState] = useState<{ error?: string; success?: string; loading: boolean }>({ loading: false })
+  const menuSpace = activeSpaces.find(s => s.id === spaceMenu) ?? null
 
   const members = useMemo(() => {
     if (!activeSpace?.members) return []
@@ -152,34 +153,9 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={e => { e.stopPropagation(); setSpaceMenu(spaceMenu === space.id ? null : space.id) }}
-                    className="absolute right-0 top-2 text-slate-500 hover:text-slate-100 text-xs opacity-0 group-hover:opacity-100 transition-opacity px-0.5"
-                  >▾</button>
-                  {spaceMenu === space.id && (
-                    <div className="absolute left-0 top-full z-20 bg-slate-800 rounded-xl shadow-xl overflow-hidden w-48 mt-1">
-                      {space.currentUserRole === 'owner' && (
-                        <button onClick={() => { setRenaming({ id: space.id, name: space.name }); setSpaceMenu(null) }}
-                          className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-slate-700">Rename</button>
-                      )}
-                      <button onClick={() => { reorderSpace(space.id, 'up'); setSpaceMenu(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-slate-700">Move left</button>
-                      <button onClick={() => { reorderSpace(space.id, 'down'); setSpaceMenu(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-slate-700">Move right</button>
-                      {space.currentUserRole === 'owner' && (
-                        <>
-                          <button onClick={() => { setShowShareModal(true); setShareInfo(''); setSpaceMenu(null) }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-slate-700">Share code</button>
-                          <button onClick={() => { setShowMembersModal(true); setSpaceMenu(null) }}
-                            className="w-full text-left px-4 py-2.5 text-sm text-slate-100 hover:bg-slate-700">Manage members</button>
-                        </>
-                      )}
-                      <button onClick={() => { archiveSpace(space.id, true); setSpaceMenu(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-400 hover:bg-slate-700">Archive</button>
-                      <button onClick={() => { setConfirmDeleteSpace(space); setSpaceMenu(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-700">
-                        {space.currentUserRole === 'owner' ? 'Delete space' : 'Leave space'}
-                      </button>
-                    </div>
-                  )}
+                    aria-label={`Open actions for ${space.name}`}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-100 text-base px-2 py-1 rounded-md opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  >⋯</button>
                 </div>
               ))}
               <button
@@ -463,7 +439,77 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {spaceMenu && <div className="fixed inset-0 z-10" onClick={() => setSpaceMenu(null)} />}
+      {menuSpace && (
+        <div className="fixed inset-0 z-40 bg-black/60" onClick={() => setSpaceMenu(null)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-3xl border-t border-slate-700 p-4 pb-6 space-y-2 shadow-2xl"
+          >
+            <p className="px-2 pb-1 text-xs uppercase tracking-wide text-slate-500">Space actions</p>
+
+            {menuSpace.currentUserRole === 'owner' && (
+              <button
+                onClick={() => { setRenaming({ id: menuSpace.id, name: menuSpace.name }); setSpaceMenu(null) }}
+                className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-100 bg-slate-800 hover:bg-slate-700"
+              >
+                Rename
+              </button>
+            )}
+
+            <button
+              onClick={() => { reorderSpace(menuSpace.id, 'up'); setSpaceMenu(null) }}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-100 bg-slate-800 hover:bg-slate-700"
+            >
+              Move left
+            </button>
+
+            <button
+              onClick={() => { reorderSpace(menuSpace.id, 'down'); setSpaceMenu(null) }}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-100 bg-slate-800 hover:bg-slate-700"
+            >
+              Move right
+            </button>
+
+            {menuSpace.currentUserRole === 'owner' && (
+              <>
+                <button
+                  onClick={() => { setShowShareModal(true); setShareInfo(''); setSpaceMenu(null) }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-100 bg-slate-800 hover:bg-slate-700"
+                >
+                  Share code
+                </button>
+                <button
+                  onClick={() => { setShowMembersModal(true); setSpaceMenu(null) }}
+                  className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-100 bg-slate-800 hover:bg-slate-700"
+                >
+                  Manage members
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => { archiveSpace(menuSpace.id, true); setSpaceMenu(null) }}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-300 bg-slate-800 hover:bg-slate-700"
+            >
+              Archive
+            </button>
+
+            <button
+              onClick={() => { setConfirmDeleteSpace(menuSpace); setSpaceMenu(null) }}
+              className="w-full text-left px-4 py-3 rounded-xl text-sm text-red-400 bg-slate-800 hover:bg-slate-700"
+            >
+              {menuSpace.currentUserRole === 'owner' ? 'Delete space' : 'Leave space'}
+            </button>
+
+            <button
+              onClick={() => setSpaceMenu(null)}
+              className="w-full text-center px-4 py-3 rounded-xl text-sm text-slate-200 bg-slate-700 hover:bg-slate-600 mt-2"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
