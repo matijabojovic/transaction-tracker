@@ -28,7 +28,6 @@ export function useTransactions(spaceId: string | null) {
     }
     const q = query(
       collection(db, 'transactions'),
-      where('uid', '==', user.uid),
       where('spaceId', '==', spaceId),
       orderBy('date', 'desc'),
       orderBy('createdAt', 'desc')
@@ -40,8 +39,12 @@ export function useTransactions(spaceId: string | null) {
     return unsub
   }, [user, spaceId])
 
-  const addTransaction = async (data: Omit<Transaction, 'id' | 'uid' | 'spaceId' | 'createdAt' | 'updatedAt'>) => {
+  const addTransaction = async (
+    data: Omit<Transaction, 'id' | 'uid' | 'spaceId' | 'createdAt' | 'updatedAt'>,
+    canWrite = true
+  ) => {
     if (!user || !spaceId) return
+    if (!canWrite) throw new Error('Read-only access to this shared space')
     const now = Timestamp.now().toMillis()
     await addDoc(collection(db, 'transactions'), {
       ...data,
@@ -52,14 +55,20 @@ export function useTransactions(spaceId: string | null) {
     })
   }
 
-  const updateTransaction = async (id: string, data: Partial<Omit<Transaction, 'id' | 'uid' | 'spaceId' | 'createdAt'>>) => {
+  const updateTransaction = async (
+    id: string,
+    data: Partial<Omit<Transaction, 'id' | 'uid' | 'spaceId' | 'createdAt'>>,
+    canWrite = true
+  ) => {
+    if (!canWrite) throw new Error('Read-only access to this shared space')
     await updateDoc(doc(db, 'transactions', id), {
       ...data,
       updatedAt: Timestamp.now().toMillis(),
     })
   }
 
-  const deleteTransaction = async (id: string) => {
+  const deleteTransaction = async (id: string, canWrite = true) => {
+    if (!canWrite) throw new Error('Read-only access to this shared space')
     await deleteDoc(doc(db, 'transactions', id))
   }
 

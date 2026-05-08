@@ -6,9 +6,10 @@ interface Props {
   onEdit: (tx: Transaction) => void
   onDuplicate: (tx: Transaction) => void
   onDelete: (id: string) => void
+  canWrite: boolean
 }
 
-export default function TransactionList({ transactions, onEdit, onDuplicate, onDelete }: Props) {
+export default function TransactionList({ transactions, onEdit, onDuplicate, onDelete, canWrite }: Props) {
   const [search, setSearch] = useState('')
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
@@ -79,22 +80,24 @@ export default function TransactionList({ transactions, onEdit, onDuplicate, onD
                   {tx.type === 'in' ? '+' : '-'}{tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {tx.currency}
                 </p>
                 {/* Context menu */}
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setOpenMenuId(openMenuId === tx.id ? null : tx.id)}
-                    className="text-slate-400 hover:text-slate-100 px-1 py-0.5 text-lg leading-none"
-                  >⋯</button>
-                  {openMenuId === tx.id && (
-                    <div className="absolute right-0 top-6 z-10 bg-slate-700 rounded-xl shadow-xl overflow-hidden w-36">
-                      <button onClick={() => { onEdit(tx); setOpenMenuId(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-slate-100">Edit</button>
-                      <button onClick={() => { onDuplicate(tx); setOpenMenuId(null) }}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-slate-100">Duplicate</button>
-                      <button onClick={() => handleDelete(tx.id)}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-red-400">Delete</button>
-                    </div>
-                  )}
-                </div>
+                {canWrite && (
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === tx.id ? null : tx.id)}
+                      className="text-slate-400 hover:text-slate-100 px-1 py-0.5 text-lg leading-none"
+                    >⋯</button>
+                    {openMenuId === tx.id && (
+                      <div className="absolute right-0 top-6 z-10 bg-slate-700 rounded-xl shadow-xl overflow-hidden w-36">
+                        <button onClick={() => { onEdit(tx); setOpenMenuId(null) }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-slate-100">Edit</button>
+                        <button onClick={() => { onDuplicate(tx); setOpenMenuId(null) }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-slate-100">Duplicate</button>
+                        <button onClick={() => handleDelete(tx.id)}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-600 text-red-400">Delete</button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
