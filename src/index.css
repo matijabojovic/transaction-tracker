@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
